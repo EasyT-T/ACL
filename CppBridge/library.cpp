@@ -4,11 +4,66 @@
 #include <vector>
 #include <Windows.h>
 
+#include <coreclr_delegates.h>
+#include <hostfxr.h>
+#include <iostream>
+#include <nethost.h>
+
 static bool initialized = false;
 
 namespace {
     HMODULE mainModule;
     asIScriptEngine *engine;
+
+    using CreateLoader = void(*)();
+
+    hostfxr_initialize_for_runtime_config_fn init_fptr;
+    hostfxr_get_runtime_delegate_fn get_delegate_fptr;
+    hostfxr_close_fn close_fptr;
+
+    bool load_hostfxr() {
+        // Pre-allocate a large buffer for the path to hostfxr
+        char_t buffer[MAX_PATH];
+        size_t buffer_size = sizeof(buffer) / sizeof(char_t);
+        int rc = get_hostfxr_path(buffer, &buffer_size, nullptr);
+        if (rc != 0)
+            return false;
+
+        // Load hostfxr and get desired exports
+        HMODULE lib = LoadLibraryW(buffer);
+        init_fptr = reinterpret_cast<hostfxr_initialize_for_runtime_config_fn>(GetProcAddress(
+            lib, "hostfxr_initialize_for_runtime_config"));
+        get_delegate_fptr = reinterpret_cast<hostfxr_get_runtime_delegate_fn>(GetProcAddress(
+            lib, "hostfxr_get_runtime_delegate"));
+        close_fptr = reinterpret_cast<hostfxr_close_fn>(GetProcAddress(lib, "hostfxr_close"));
+
+        return init_fptr && get_delegate_fptr && close_fptr;
+    }
+
+    load_assembly_and_get_function_pointer_fn get_dotnet_load_assembly(const char_t *config_path) {
+        // Load .NET Core
+        void *load_assembly_and_get_function_pointer = nullptr;
+        hostfxr_handle cxt = nullptr;
+        int rc = init_fptr(config_path, nullptr, &cxt);
+        if (rc != 0 || cxt == nullptr) {
+            close_fptr(cxt);
+            return nullptr;
+        }
+
+        // Get the load assembly function pointer
+        rc = get_delegate_fptr(
+            cxt,
+            hdt_load_assembly_and_get_function_pointer,
+            &load_assembly_and_get_function_pointer);
+
+        close_fptr(cxt);
+
+        if (rc != 0 || load_assembly_and_get_function_pointer == nullptr) {
+            return nullptr;
+        }
+
+        return reinterpret_cast<load_assembly_and_get_function_pointer_fn>(load_assembly_and_get_function_pointer);
+    }
 }
 
 bool _stdcall DllMain(HINSTANCE, DWORD, LPVOID) {
@@ -24,11 +79,38 @@ bool _stdcall DllMain(HINSTANCE, DWORD, LPVOID) {
 
     engine = **reinterpret_cast<asIScriptEngine ***>(reinterpret_cast<char *>(mainModule) + 0x167410);
 
-    const bool result = TL_Tool_Call_Library("erf.net.dll", "CreateLoader");
-
-    initialized = result;
+    initialized = true;
 
     return initialized;
+}
+
+bool _stdcall TL_Load_Plugins() {
+    if (!load_hostfxr()) {
+        return false;
+    }
+
+    load_assembly_and_get_function_pointer_fn getFuncPtr = get_dotnet_load_assembly(L"ERF.NET.runtimeconfig.json");
+
+    if (getFuncPtr == nullptr) {
+        return false;
+    }
+
+    CreateLoader createLoader;
+
+    const int rc = getFuncPtr(L"ERF.NET.dll",
+        L"ERF.Loader.PluginLoader, ERF.NET",
+        L"CreateLoader",
+        UNMANAGEDCALLERSONLY_METHOD,
+        nullptr,
+               reinterpret_cast<void **>(&createLoader));
+
+    if (rc != 0) {
+        return false;
+    }
+
+    createLoader();
+
+    return true;
 }
 
 bool _stdcall TL_Tool_Call_Library(const char *libraryName, const char *procName) {

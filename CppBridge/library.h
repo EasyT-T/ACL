@@ -9,6 +9,8 @@ struct BBStr : std::string {
     BBStr *prev;
 };
 
+extern "C" __declspec(dllexport) bool _stdcall TL_Load_Plugins();
+
 extern "C" __declspec(dllexport) bool _stdcall TL_Tool_Call_Library(const char *libraryName, const char *procName);
 
 extern "C" __declspec(dllexport) BBStr * _stdcall TL_Tool_Get_String(const char *str);

@@ -1,4 +1,4 @@
-﻿namespace ERF.Loader.Binding;
+﻿namespace ERF.Binding;
 
 using System.Runtime.InteropServices;
 

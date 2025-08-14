@@ -1,4 +1,4 @@
-﻿namespace ERF.Loader;
+﻿namespace ERF.Managed;
 
 public enum ScriptErrorType
 {

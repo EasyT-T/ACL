@@ -1,16 +1,12 @@
 ﻿namespace ERF.Example;
 
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using ERF.Feature;
 using ERF.Loader;
-using ERF.Loader.Binding;
-using ERF.Loader.Feature;
-using ERF.Loader.Managed;
+using ERF.Managed;
 
-public class TestPlugin
+public class TestPlugin : IPlugin
 {
-    [UnmanagedCallersOnly(EntryPoint = nameof(EnablePlugin), CallConvs = [typeof(CallConvCdecl)])]
-    public static void EnablePlugin()
+    public void EnablePlugin()
     {
         var function = ScriptEngine.GetGlobalFunctionByDecl("void print(string &in message)");
         using var context = ScriptEngine.CreateContext();

@@ -5,10 +5,10 @@
         <LangVersion>12</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <PublishAot>true</PublishAot>
-        <RootNamespace>ERF.Loader</RootNamespace>
         <Configurations>Release;Debug</Configurations>
         <Platforms>x86</Platforms>
+        <AssemblyName>ERF.NET</AssemblyName>
+        <RootNamespace>ERF</RootNamespace>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">

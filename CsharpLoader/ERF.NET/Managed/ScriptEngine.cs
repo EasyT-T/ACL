@@ -1,6 +1,6 @@
-﻿namespace ERF.Loader.Managed;
+﻿namespace ERF.Managed;
 
-using ERF.Loader.Binding;
+using ERF.Binding;
 
 public class ScriptEngine
 {

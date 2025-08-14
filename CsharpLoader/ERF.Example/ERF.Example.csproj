@@ -5,13 +5,12 @@
         <LangVersion>12</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <PublishAot>true</PublishAot>
         <Configurations>Release;Debug</Configurations>
         <Platforms>x86</Platforms>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ERF\ERF.csproj" />
+      <ProjectReference Include="..\ERF.NET\ERF.NET.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-﻿namespace ERF.Loader.Managed;
+﻿namespace ERF.Managed;
 
 public class ScriptFunction
 {

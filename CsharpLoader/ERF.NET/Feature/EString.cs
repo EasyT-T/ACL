@@ -1,8 +1,7 @@
-﻿namespace ERF.Loader.Feature;
+﻿namespace ERF.Feature;
 
-using System.Runtime.InteropServices;
-using ERF.Loader.Binding;
-using ERF.Loader.Managed;
+using ERF.Binding;
+using ERF.Managed;
 
 public class EString : IObjectClass, IDisposable
 {
