@@ -14,10 +14,10 @@ public static class GlobalFunctions
 
     static GlobalFunctions()
     {
-        PrintFunction = ScriptEngine.GetGlobalFunctionByDecl("void print(string &in message)");
-        CreateBankFunction = ScriptEngine.GetGlobalFunctionByDecl("int CreateBank(int size)");
-        FreeBankFunction = ScriptEngine.GetGlobalFunctionByDecl("void FreeBank(int bank)");
-        BankSizeFunction = ScriptEngine.GetGlobalFunctionByDecl("int BankSize(int bank)");
+        PrintFunction = ScriptEngine.GetGlobalFunction("void print(string &in message)");
+        CreateBankFunction = ScriptEngine.GetGlobalFunction("int CreateBank(int size)");
+        FreeBankFunction = ScriptEngine.GetGlobalFunction("void FreeBank(int bank)");
+        BankSizeFunction = ScriptEngine.GetGlobalFunction("int BankSize(int bank)");
     }
 
     public static ScriptErrorType Print(string message)

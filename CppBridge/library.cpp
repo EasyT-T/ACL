@@ -9,11 +9,15 @@
 #include <iostream>
 #include <nethost.h>
 
+#include "as_memory.h"
+#include "as_module.h"
+#include "as_scriptengine.h"
+
 static bool initialized = false;
 
 namespace {
-    HMODULE mainModule;
     asIScriptEngine *engine;
+    HMODULE mainModule;
 
     using CreateLoader = void(*)();
 
@@ -98,11 +102,11 @@ bool _stdcall TL_Load_Plugins() {
     CreateLoader createLoader;
 
     const int rc = getFuncPtr(L"ERF.NET.dll",
-        L"ERF.Loader.PluginLoader, ERF.NET",
-        L"CreateLoader",
-        UNMANAGEDCALLERSONLY_METHOD,
-        nullptr,
-               reinterpret_cast<void **>(&createLoader));
+                              L"ERF.Loader.PluginLoader, ERF.NET",
+                              L"CreateLoader",
+                              UNMANAGEDCALLERSONLY_METHOD,
+                              nullptr,
+                              reinterpret_cast<void **>(&createLoader));
 
     if (rc != 0) {
         return false;
@@ -126,23 +130,119 @@ bool _stdcall TL_Tool_Call_Library(const char *libraryName, const char *procName
     return true;
 }
 
-BBStr * __stdcall TL_Tool_Get_String(const char *str) {
+BBStr * _stdcall TL_Tool_Get_String(const char *str) {
     return new BBStr(str);
 }
 
-void __stdcall TL_Tool_Return_String(const BBStr *string) {
+void _stdcall TL_Tool_Return_String(const BBStr *string) {
     delete string;
+}
+
+asSFuncPtr * _stdcall TL_Tool_Get_FuncPtr(void *func) {
+    const auto funcPtr = new asSFuncPtr(2);
+    funcPtr->ptr.f.func = reinterpret_cast<asFUNCTION_t>(func);
+
+    return funcPtr;
+}
+
+void _stdcall TL_Tool_Return_FuncPtr(const asSFuncPtr *funcPtr) {
+    delete funcPtr;
+}
+
+ModuleContext * __stdcall TL_Tool_Get_ModuleContext(asIScriptModule *module, asIScriptContext *context) {
+    return new ModuleContext(module, context);
+}
+
+void __stdcall TL_Tool_Return_ModuleContext(const ModuleContext *moduleContext) {
+    delete moduleContext;
+}
+
+asCScriptFunction * __stdcall TL_Tool_RegisterFunctionToModule(asCModule *module, const char *declaration,
+                                                const asSFuncPtr *funcPointer, const asDWORD callConv,
+                                                void *auxiliary) {
+    engine->RegisterGlobalFunction(declaration, *funcPointer, callConv, auxiliary);
+    const auto c_engine = reinterpret_cast<asCScriptEngine *>(engine);
+
+    const auto func = reinterpret_cast<asCScriptFunction *>(c_engine->GetGlobalFunctionByDecl(declaration));
+
+    func->nameSpace = module->m_defaultNamespace;
+    func->module = module;
+    module->m_globalFunctions.Put(func);
+
+    return func;
+}
+
+asIScriptEngine * _stdcall TL_Engine_GetEngine() {
+    return engine;
+}
+
+int __stdcall TL_Engine_RegisterGlobalFunction(const char *declaration, const asSFuncPtr *funcPointer,
+                                               const asDWORD callConv,
+                                               void *auxiliary) {
+    return engine->RegisterGlobalFunction(declaration, *funcPointer, callConv, auxiliary);
+}
+
+asUINT _stdcall TL_Engine_GetGlobalFunctionCount() {
+    return engine->GetGlobalFunctionCount();
+}
+
+asIScriptFunction * __stdcall TL_Engine_GetGlobalFunctionByIndex(const asUINT index) {
+    return engine->GetGlobalFunctionByIndex(index);
+}
+
+asIScriptFunction * _stdcall TL_Engine_GetGlobalFunctionByDecl(const char *declaration) {
+    return engine->GetGlobalFunctionByDecl(declaration);
+}
+
+asUINT __stdcall TL_Engine_GetFuncdefCount() {
+    return engine->GetFuncdefCount();
+}
+
+asITypeInfo * __stdcall TL_Engine_GetFuncdefByIndex(const asUINT index) {
+    return engine->GetFuncdefByIndex(index);
+}
+
+const char *TL_Engine_GetTypeDeclaration(const int typeId, const bool includeNamespace) {
+    return engine->GetTypeDeclaration(typeId, includeNamespace);
+}
+
+asITypeInfo * __stdcall TL_Engine_GetTypeInfoByName(const char *name) {
+    return engine->GetTypeInfoByName(name);
+}
+
+asITypeInfo * __stdcall TL_Engine_GetTypeInfoByDecl(const char *decl) {
+    return engine->GetTypeInfoByDecl(decl);
 }
 
 asIScriptContext * _stdcall TL_Engine_CreateContext() {
     return engine->CreateContext();
 }
 
-asIScriptFunction * __stdcall TL_Engine_GetGlobalFunctionByDecl(const char *declaration) {
-    return engine->GetGlobalFunctionByDecl(declaration);
+void * _stdcall TL_Engine_CreateScriptObject(const asITypeInfo *type) {
+    return engine->CreateScriptObject(type);
 }
 
-int __stdcall TL_Context_Release(const asIScriptContext *context) {
+asIScriptFunction * _stdcall TL_Engine_CreateDelegate(asIScriptFunction *func, void *obj) {
+    return engine->CreateDelegate(func, obj);
+}
+
+asIScriptModule * __stdcall TL_Engine_GetModule(const char *module, const asEGMFlags flag) {
+    return engine->GetModule(module, flag);
+}
+
+int __stdcall TL_Engine_DiscardModule(const char *module) {
+    return engine->DiscardModule(module);
+}
+
+int TL_TypeInfo_GetTypeId(const asITypeInfo *type) {
+    return type->GetTypeId();
+}
+
+const char *TL_TypeInfo_GetName(const asITypeInfo *type) {
+    return type->GetName();
+}
+
+int _stdcall TL_Context_Release(const asIScriptContext *context) {
     return context->Release();
 }
 
@@ -150,11 +250,11 @@ int _stdcall TL_Context_Prepare(asIScriptContext *context, asIScriptFunction *fu
     return context->Prepare(function);
 }
 
-int __stdcall TL_Context_Unprepare(asIScriptContext *context) {
+int _stdcall TL_Context_Unprepare(asIScriptContext *context) {
     return context->Unprepare();
 }
 
-int __stdcall TL_Context_Execute(asIScriptContext *context) {
+int _stdcall TL_Context_Execute(asIScriptContext *context) {
     return context->Execute();
 }
 
@@ -194,38 +294,77 @@ int _stdcall TL_Context_SetArgVarType(asIScriptContext *context, const asUINT ar
     return context->SetArgVarType(arg, ptr, typeId);
 }
 
-asBYTE __stdcall TL_Context_GetReturnByte(asIScriptContext *context) {
+asBYTE _stdcall TL_Context_GetReturnByte(asIScriptContext *context) {
     return context->GetReturnByte();
 }
 
-asWORD __stdcall TL_Context_GetReturnWord(asIScriptContext *context) {
+asWORD _stdcall TL_Context_GetReturnWord(asIScriptContext *context) {
     return context->GetReturnWord();
 }
 
-asDWORD __stdcall TL_Context_GetReturnDWord(asIScriptContext *context) {
+asDWORD _stdcall TL_Context_GetReturnDWord(asIScriptContext *context) {
     return context->GetReturnDWord();
 }
 
-asQWORD __stdcall TL_Context_GetReturnQWord(asIScriptContext *context) {
+asQWORD _stdcall TL_Context_GetReturnQWord(asIScriptContext *context) {
     return context->GetReturnQWord();
 }
 
-float __stdcall TL_Context_GetReturnFloat(asIScriptContext *context) {
+float _stdcall TL_Context_GetReturnFloat(asIScriptContext *context) {
     return context->GetReturnFloat();
 }
 
-double __stdcall TL_Context_GetReturnDouble(asIScriptContext *context) {
+double _stdcall TL_Context_GetReturnDouble(asIScriptContext *context) {
     return context->GetReturnDouble();
 }
 
-void * __stdcall TL_Context_GetReturnAddress(asIScriptContext *context) {
+void * _stdcall TL_Context_GetReturnAddress(asIScriptContext *context) {
     return context->GetReturnAddress();
 }
 
-void * __stdcall TL_Context_GetReturnObject(asIScriptContext *context) {
+void * _stdcall TL_Context_GetReturnObject(asIScriptContext *context) {
     return context->GetReturnObject();
 }
 
-void * __stdcall TL_Context_GetAddressOfReturnValue(asIScriptContext *context) {
+void * _stdcall TL_Context_GetAddressOfReturnValue(asIScriptContext *context) {
     return context->GetAddressOfReturnValue();
+}
+
+void * __stdcall TL_Context_SetUserData(asIScriptContext *context, void *data, const asPWORD type) {
+    return context->SetUserData(data, type);
+}
+
+void * __stdcall TL_Context_GetUserData(const asIScriptContext *context, const asPWORD type) {
+    return context->GetUserData(type);
+}
+
+const char * __stdcall TL_Function_GetDeclaration(const asIScriptFunction *function, const bool includeObjectName,
+                                                  const bool includeNamespace, const bool includeParamNames) {
+    return function->GetDeclaration(includeObjectName, includeNamespace, includeParamNames);
+}
+
+void * __stdcall TL_Module_SetUserData(asIScriptModule *module, void *data, const asPWORD type) {
+    return module->SetUserData(data, type);
+}
+
+void * __stdcall TL_Module_GetUserData(const asIScriptModule *module, const asPWORD type) {
+    return module->GetUserData(type);
+}
+
+int __stdcall TL_Module_AddScriptSection(asIScriptModule *module, const char *name, const char *code,
+                                         const size_t codeLength,
+                                         const int lineOffset) {
+    return module->AddScriptSection(name, code, codeLength, lineOffset);
+}
+
+int __stdcall TL_Module_Build(asIScriptModule *module) {
+    return module->Build();
+}
+
+asUINT __stdcall TL_Module_GetFunctionCount(const asIScriptModule *module) {
+    return module->GetFunctionCount();
+}
+
+asIScriptFunction * __stdcall TL_Module_GetFunctionByDecl(const asIScriptModule *module, const char *decl) {
+    return module->GetFunctionByDecl(decl);
 }

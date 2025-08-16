@@ -13,6 +13,7 @@
 
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
       <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+      <DebugType>embedded</DebugType>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">

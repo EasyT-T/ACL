@@ -455,14 +455,14 @@ typedef void (asCUnknownClass::*asMETHOD_t)();
 
 struct asSFuncPtr
 {
-	asSFuncPtr(asBYTE f = 0)
+	asSFuncPtr(const asBYTE f = 0)
 	{
 		for( size_t n = 0; n < sizeof(ptr.dummy); n++ )
 			ptr.dummy[n] = 0;
 		flag = f;
 	}
 
-	void CopyMethodPtr(const void *mthdPtr, size_t size)
+	void CopyMethodPtr(const void *mthdPtr, const size_t size)
 	{
 		for( size_t n = 0; n < size; n++ )
 			ptr.dummy[n] = reinterpret_cast<const char *>(mthdPtr)[n];
@@ -1166,6 +1166,7 @@ public:
 	virtual const char      *GetObjectName() const = 0;
 	virtual const char      *GetName() const = 0;
 	virtual const char      *GetNamespace() const = 0;
+	virtual char			*UnknownFunc() const = 0;
 	virtual const char      *GetDeclaration(bool includeObjectName = true, bool includeNamespace = false, bool includeParamNames = false) const = 0;
 	virtual bool             IsReadOnly() const = 0;
 	virtual bool             IsPrivate() const = 0;
@@ -1269,7 +1270,7 @@ inline asSFuncPtr asFunctionPtr(T func)
 
 // Specialization for functions using the generic calling convention
 template<>
-inline asSFuncPtr asFunctionPtr<asGENFUNC_t>(asGENFUNC_t func)
+inline asSFuncPtr asFunctionPtr<asGENFUNC_t>(const asGENFUNC_t func)
 {
 	// Mark this as a generic function
 	asSFuncPtr p(1);
@@ -1284,7 +1285,6 @@ inline asSFuncPtr asFunctionPtr<asGENFUNC_t>(asGENFUNC_t func)
 // Declare a dummy class so that we can determine the size of a simple method pointer
 class asCSimpleDummy {};
 typedef void (asCSimpleDummy::*asSIMPLEMETHOD_t)();
-const int SINGLE_PTR_SIZE = sizeof(asSIMPLEMETHOD_t);
 
 // Define template
 template <int N>
@@ -1321,7 +1321,7 @@ struct asSMethodPtr<SINGLE_PTR_SIZE>
 
 // MSVC and Intel uses different sizes for different class method pointers
 template <>
-struct asSMethodPtr<SINGLE_PTR_SIZE+1*sizeof(int)>
+struct asSMethodPtr<8>
 {
 	template <class M>
 	static asSFuncPtr Convert(M Mthd)
@@ -1334,7 +1334,7 @@ struct asSMethodPtr<SINGLE_PTR_SIZE+1*sizeof(int)>
 };
 
 template <>
-struct asSMethodPtr<SINGLE_PTR_SIZE+2*sizeof(int)>
+struct asSMethodPtr<12>
 {
 	template <class M>
 	static asSFuncPtr Convert(M Mthd)
@@ -1375,7 +1375,7 @@ struct asSMethodPtr<SINGLE_PTR_SIZE+2*sizeof(int)>
 };
 
 template <>
-struct asSMethodPtr<SINGLE_PTR_SIZE+3*sizeof(int)>
+struct asSMethodPtr<16>
 {
 	template <class M>
 	static asSFuncPtr Convert(M Mthd)
@@ -1388,7 +1388,7 @@ struct asSMethodPtr<SINGLE_PTR_SIZE+3*sizeof(int)>
 };
 
 template <>
-struct asSMethodPtr<SINGLE_PTR_SIZE+4*sizeof(int)>
+struct asSMethodPtr<20>
 {
 	template <class M>
 	static asSFuncPtr Convert(M Mthd)

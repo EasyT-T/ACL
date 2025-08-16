@@ -1,7 +1,7 @@
 ﻿namespace ERF.Feature;
 
-using ERF.Binding;
 using ERF.Managed;
+using NativeBindings = ERF.Private.NativeBindings;
 
 public class EString : IObjectClass, IDisposable
 {

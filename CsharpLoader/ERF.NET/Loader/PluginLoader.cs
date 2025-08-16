@@ -1,10 +1,11 @@
 ﻿namespace ERF.Loader;
 
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using ERF.Feature;
+using ERF.Managed;
 
 public class PluginLoader
 {
@@ -15,9 +16,9 @@ public class PluginLoader
 
     public string PluginDirectory { get; } = Path.Combine(Environment.CurrentDirectory, "plugins");
 
-    internal List<IPlugin> Plugins { get; } = [];
+    internal Dictionary<Assembly, Plugin> Plugins { get; } = [];
 
-    private readonly AssemblyLoadContext context = new PluginAssemblyLoadContext("ERF", Assembly.GetExecutingAssembly());
+    private readonly AssemblyLoadContext loadContext = new PluginAssemblyLoadContext("ERF", Assembly.GetExecutingAssembly());
 
     [UnmanagedCallersOnly(EntryPoint = "CreateLoader")]
     internal static void CreateLoader()
@@ -41,7 +42,7 @@ public class PluginLoader
 
         foreach (var file in directory.GetFiles("*.dll"))
         {
-            var assembly = this.context.LoadFromAssemblyPath(file.FullName);
+            var assembly = this.loadContext.LoadFromAssemblyPath(file.FullName);
 
             this.LoadPluginInternal(assembly);
         }
@@ -51,19 +52,31 @@ public class PluginLoader
     {
         foreach (var type in assembly.GetTypes())
         {
-            if (!typeof(IPlugin).IsAssignableFrom(type))
+            if (!typeof(Plugin).IsAssignableFrom(type))
             {
                 continue;
             }
 
-            if (Activator.CreateInstance(type) is not IPlugin plugin)
+            if (Activator.CreateInstance(type) is not Plugin plugin)
             {
                 continue;
             }
+
+            var module = ScriptModule.Create(plugin.Name);
+            var context = ScriptEngine.CreateContext();
+            var moduleContext = ModuleContext.Create(module, context);
+
+            module.SetUserData(moduleContext, 0);
+            context.SetUserData(moduleContext, 0);
+
+            plugin.ModuleContext = moduleContext;
+            plugin.EventManager = new EventManager(plugin);
 
             plugin.EnablePlugin();
 
-            this.Plugins.Add(plugin);
+            this.Plugins.Add(assembly, plugin);
+
+            return;
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿namespace ERF.Managed;
 
-using ERF.Binding;
+using NativeBindings = ERF.Private.NativeBindings;
 
 public class ScriptContext : IDisposable
 {
@@ -94,6 +94,16 @@ public class ScriptContext : IDisposable
     public IntPtr GetReturnPointer()
     {
         return NativeBindings.TL_Context_GetReturnAddress(this.Handle);
+    }
+
+    public UserData SetUserData(UserData data, uint type)
+    {
+        return new UserData(NativeBindings.TL_Context_SetUserData(this.Handle, data.Handle, type));
+    }
+
+    public UserData GetUserData(uint type)
+    {
+        return new UserData(NativeBindings.TL_Context_GetUserData(this.Handle, type));
     }
 
     public void Dispose()
