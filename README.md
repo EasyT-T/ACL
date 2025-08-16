@@ -6,8 +6,9 @@ This is a C# plugin loader / wrapper for SCP Containment Breach Multiplayer Rebo
 
 ## How to use it
 
-1. Add a config to your `server.cfg` file.
-`script {ProjectFolder}/AngelScript/csloader.as`
+1. Add configs to your `server.cfg` file.
+`plugin {ProjectFolder}/AngelScript/preinit.as`
+`plugin {ProjectFolder}/AngelScript/csloader.as`
 
 2. Compile the `CppBridge` and get `crf.dll`. Put this library to your server folder.
 
