@@ -23,6 +23,16 @@ public class PluginLoader
 
     private readonly AssemblyLoadContext loadContext = new PluginAssemblyLoadContext("ACL", Assembly.GetExecutingAssembly());
 
+    private PluginLoader()
+    {
+        var moduleContext = ModuleContext.Create(ScriptModule.Create("acl"), ScriptEngine.CreateContext());
+        moduleContext.Module.SetUserData(moduleContext, 0);
+        moduleContext.Context.SetUserData(moduleContext, 0);
+        var eventManager = new EventManager(moduleContext);
+
+        Player.Register(eventManager);
+    }
+
     [UnmanagedCallersOnly(EntryPoint = "CreateLoader")]
     internal static void CreateLoader()
     {

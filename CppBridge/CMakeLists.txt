@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.31)
-project(erf)
+project(acl)
 
 set(ERF_DOTNET_HOST_PATH "C:/Program Files/dotnet/packs/Microsoft.NETCore.App.Host.win-x86/9.0.8/runtimes/win-x86/native"
         CACHE PATH "Path to Microsoft.NETCore.App.Host")
@@ -46,7 +46,7 @@ set(ANGELSCRIPT_HEADERS
         angelscript/as_variablescope.h
 )
 
-add_library(erf SHARED
+add_library(acl SHARED
         library.cpp
         ${ANGELSCRIPT_HEADERS}
         angelscript/as_memory.cpp
@@ -56,7 +56,7 @@ add_library(erf SHARED
         library.h
 )
 
-target_compile_definitions(erf PRIVATE AS_NO_EXCEPTIONS)
+target_compile_definitions(acl PRIVATE AS_NO_EXCEPTIONS)
 
-target_link_directories(erf PRIVATE ${ERF_DOTNET_HOST_PATH})
-target_link_libraries(erf PRIVATE "nethost.lib")
+target_link_directories(acl PRIVATE ${ERF_DOTNET_HOST_PATH})
+target_link_libraries(acl PRIVATE "nethost.lib")

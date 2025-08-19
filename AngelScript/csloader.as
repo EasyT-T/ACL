@@ -2,7 +2,7 @@
 
 void OnInitialize()
 {
-    print("Loading ERF C++ Libraries...");
+    print("Loading ACL C++ Libraries...");
 
     RegisterAllCallbacks();
 

@@ -17,33 +17,36 @@ public class ScriptGenerator : IIncrementalGenerator
     private const string ClassAttributeName = "ScriptClassAttribute";
     private const string FunctionAttributeName = "ScriptFunctionAttribute";
 
-    private static readonly string ClassAttributeSourceCode = $$"""
-                                                                namespace {{Namespace}};
-                                                                using System;
-                                                                [AttributeUsage(AttributeTargets.Class)]
-                                                                public sealed class {{ClassAttributeName}} : Attribute
-                                                                {
-                                                                    public string TypeName { get; }
-                                                                    public {{ClassAttributeName}}(string typeName)
-                                                                    {
-                                                                        TypeName = typeName;
-                                                                    }
-                                                                }
-                                                                """;
+    private const string ClassAttributeSourceCode = $$"""
+                                                      namespace {{Namespace}};
+                                                      using System;
+                                                      [AttributeUsage(AttributeTargets.Class)]
+                                                      public sealed class {{ClassAttributeName}} : Attribute
+                                                      {
+                                                          public string TypeName { get; }
+                                                          public {{ClassAttributeName}}(string typeName)
+                                                          {
+                                                              TypeName = typeName;
+                                                          }
+                                                      }
+                                                      """;
 
-    private static readonly string FunctionAttributeSourceCode = $$"""
-                                                                   namespace {{Namespace}};
-                                                                   using System;
-                                                                   [AttributeUsage(AttributeTargets.Method)]
-                                                                   public sealed class {{FunctionAttributeName}} : Attribute
-                                                                   {
-                                                                       public string Declaration { get; }
-                                                                       public {{FunctionAttributeName}}(string declaration)
-                                                                       {
-                                                                           Declaration = declaration;
-                                                                       }
-                                                                   }
-                                                                   """;
+    private const string FunctionAttributeSourceCode = $$"""
+                                                         namespace {{Namespace}};
+                                                         using System;
+                                                         [AttributeUsage(AttributeTargets.Method)]
+                                                         public sealed class {{FunctionAttributeName}} : Attribute
+                                                         {
+                                                             public string Declaration { get; }
+                                                             public bool ReturnReference { get; }
+                                                             
+                                                             public {{FunctionAttributeName}}(string declaration, bool returnReference = false)
+                                                             {
+                                                                 Declaration = declaration;
+                                                                 ReturnReference = returnReference;
+                                                             }
+                                                         }
+                                                         """;
 
     private static readonly ImmutableDictionary<SpecialType, string> ParamTypeMap = new Dictionary<SpecialType, string>
     {
@@ -194,7 +197,7 @@ public class ScriptGenerator : IIncrementalGenerator
 
     private static void GenerateMethodField(StringBuilder sb, IMethodSymbol method)
     {
-        var declaration = GetMethodDeclaration(method);
+        var declaration = GetFunctionDeclaration(method);
         var fieldName = GetFieldName(method);
         sb.AppendLine($"    private static readonly ScriptFunction {fieldName} = ");
         sb.AppendLine(
@@ -202,13 +205,21 @@ public class ScriptGenerator : IIncrementalGenerator
         sb.AppendLine();
     }
 
-    private static string GetMethodDeclaration(IMethodSymbol method)
+    private static string GetFunctionDeclaration(IMethodSymbol method)
     {
         var attribute = method.GetAttributes()
             .First(static a => IsMatchingAttribute(a, FunctionAttributeName));
 
         return attribute.ConstructorArguments[0].Value as string
                ?? string.Empty;
+    }
+
+    private static bool GetReturnReference(IMethodSymbol method)
+    {
+        var attribute = method.GetAttributes()
+            .First(static a => IsMatchingAttribute(a, FunctionAttributeName));
+
+        return attribute.ConstructorArguments[1].Value as bool? ?? false;
     }
 
     private static string GetFieldName(IMethodSymbol method)
@@ -289,7 +300,14 @@ public class ScriptGenerator : IIncrementalGenerator
 
         sb.AppendLine(ReturnMap.TryGetValue(method.ReturnType.SpecialType, out var returnCode)
             ? $"        {returnCode}"
-            : $"        return new {method.ReturnType.ToDisplayString()}(context.GetReturnPointer());");
+            : GenerateObjectReturnCode(method));
+    }
+
+    private static string GenerateObjectReturnCode(IMethodSymbol method)
+    {
+        return GetReturnReference(method)
+            ? $"        return new {method.ReturnType.ToDisplayString()}(context.GetReturnObject());"
+            : $"        return new {method.ReturnType.ToDisplayString()}(context.GetReturnPointer());";
     }
 
     private static bool HasAttribute(ISymbol symbol, string attributeName)

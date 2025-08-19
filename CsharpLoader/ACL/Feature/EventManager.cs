@@ -141,7 +141,14 @@ public class EventManager(ModuleContext moduleContext)
         void WrappedCallback(AngelObject obj)
         {
             using var ptr = obj.GetPointer();
-            var player = new Player(new ManagedPlayer(ptr.Handle));
+            var managed = new ManagedPlayer(ptr.Handle);
+            var id = managed.GetIndex();
+
+            if (!Player.TryGet(id, out var player))
+            {
+                player = new Player(managed);
+            }
+
             callback.Invoke(player);
         }
     }
@@ -153,7 +160,13 @@ public class EventManager(ModuleContext moduleContext)
         bool WrappedCallback(AngelObject obj, AngelObject obj2)
         {
             using var ptr = obj.GetPointer();
-            var player = new Player(new ManagedPlayer(ptr.Handle));
+            var managed = new ManagedPlayer(ptr.Handle);
+            var id = managed.GetIndex();
+
+            if (!Player.TryGet(id, out var player))
+            {
+                player = new Player(managed);
+            }
 
             using var ptr2 = obj2.GetPointer();
             var str = new ManagedString(ptr2.Handle).ToString();

@@ -7,7 +7,7 @@ using ACL.Extension;
 using ACL.Private;
 using ManagedPlayer = ACL.Managed.ScriptObject.ManagedPlayer;
 
-public class Player : IRegistryObject
+public class Player
 {
     public static IEnumerable<Player> List => IdCache.Values;
 
@@ -189,6 +189,12 @@ public class Player : IRegistryObject
         return IdCache.TryGetValue(id, out player);
     }
 
+    internal static void Register(EventManager eventManager)
+    {
+        eventManager.PlayerConnect += OnPlayerConnect;
+        eventManager.PlayerDisconnect += OnPlayerDisconnect;
+    }
+
     private static void OnPlayerConnect(Player player)
     {
         IdCache.Add(player.Id, player);
@@ -197,12 +203,6 @@ public class Player : IRegistryObject
     private static void OnPlayerDisconnect(Player player)
     {
         IdCache.Remove(player.Id);
-    }
-
-    void IRegistryObject.Register(EventManager eventManager)
-    {
-        eventManager.PlayerConnect += OnPlayerConnect;
-        eventManager.PlayerDisconnect += OnPlayerDisconnect;
     }
 
     public void SetPlayerTag(int index, PlayerTag tag)

@@ -149,6 +149,17 @@ public class ScriptContext : IDisposable
         return NativeBindings.TL_Context_GetReturnAddress(this.Handle);
     }
 
+    public IntPtr GetReturnObject()
+    {
+        return NativeBindings.TL_Context_GetReturnObject(this.Handle);
+    }
+
+    public T GetReturnObject<T>(Func<IntPtr, T> constructFunc) where T : ScriptObjectBase
+    {
+        var handle = NativeBindings.TL_Context_GetReturnObject(this.Handle);
+        return constructFunc(handle);
+    }
+
     public UserData SetUserData(UserData data, uint type)
     {
         return new UserData(NativeBindings.TL_Context_SetUserData(this.Handle, data.Handle, type));
