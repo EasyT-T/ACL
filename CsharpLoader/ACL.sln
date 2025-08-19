@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACL", "ACL\ACL.csproj", "{6A84DD56-972B-49AD-8641-F84F5BD9C07E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACL.Example", "ACL.Sample\ACL.Sample.csproj", "{6D05E2D7-F307-443B-A3AE-0D2D977227D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACL.SourceGenerator", "ACL.SourceGenerator\ACL.SourceGenerator.csproj", "{454A8EF9-A5BE-4FCA-9225-11ADAB571ADF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Release|x86 = Release|x86
+		Debug|x86 = Debug|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6A84DD56-972B-49AD-8641-F84F5BD9C07E}.Release|x86.ActiveCfg = Release|x86
+		{6A84DD56-972B-49AD-8641-F84F5BD9C07E}.Release|x86.Build.0 = Release|x86
+		{6A84DD56-972B-49AD-8641-F84F5BD9C07E}.Debug|x86.ActiveCfg = Debug|x86
+		{6A84DD56-972B-49AD-8641-F84F5BD9C07E}.Debug|x86.Build.0 = Debug|x86
+		{6D05E2D7-F307-443B-A3AE-0D2D977227D5}.Release|x86.ActiveCfg = Release|x86
+		{6D05E2D7-F307-443B-A3AE-0D2D977227D5}.Release|x86.Build.0 = Release|x86
+		{6D05E2D7-F307-443B-A3AE-0D2D977227D5}.Debug|x86.ActiveCfg = Debug|x86
+		{6D05E2D7-F307-443B-A3AE-0D2D977227D5}.Debug|x86.Build.0 = Debug|x86
+		{454A8EF9-A5BE-4FCA-9225-11ADAB571ADF}.Release|x86.ActiveCfg = Release|Any CPU
+		{454A8EF9-A5BE-4FCA-9225-11ADAB571ADF}.Release|x86.Build.0 = Release|Any CPU
+		{454A8EF9-A5BE-4FCA-9225-11ADAB571ADF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{454A8EF9-A5BE-4FCA-9225-11ADAB571ADF}.Debug|x86.Build.0 = Debug|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+	EndGlobalSection
+EndGlobal

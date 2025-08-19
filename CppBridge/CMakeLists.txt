@@ -47,13 +47,13 @@ set(ANGELSCRIPT_HEADERS
 )
 
 add_library(erf SHARED
-        library.h
         library.cpp
         ${ANGELSCRIPT_HEADERS}
         angelscript/as_memory.cpp
         angelscript/as_string.cpp
         angelscript/as_string_util.cpp
         angelscript/as_thread.cpp
+        library.h
 )
 
 target_compile_definitions(erf PRIVATE AS_NO_EXCEPTIONS)
