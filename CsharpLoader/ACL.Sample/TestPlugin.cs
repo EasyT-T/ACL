@@ -1,4 +1,4 @@
-﻿namespace ACL.Example;
+﻿namespace ACL.Sample;
 
 using ACL.Feature;
 using ACL.Loader;

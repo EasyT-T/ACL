@@ -6,8 +6,17 @@ using ACL.Managed.ScriptObject;
 using ACL.Private;
 using ManagedPlayer = ACL.Managed.ScriptObject.ManagedPlayer;
 
-public class EventManager(ModuleContext moduleContext)
+public class EventManager
 {
+    private readonly ModuleContext moduleContext;
+
+    public EventManager(ModuleContext moduleContext)
+    {
+        this.moduleContext = moduleContext;
+        this.moduleContext.Module.SetUserData(this.moduleContext, 0);
+        this.moduleContext.Context.SetUserData(this.moduleContext, 0);
+    }
+
     private static int globalFuncIndex;
 
     [UnmanagedFunctionPointer(CallingConvention.StdCall)]
@@ -107,8 +116,8 @@ public class EventManager(ModuleContext moduleContext)
         {
             var scriptCallback = AngelCallback.Create(callback);
 
-            var context = moduleContext.Context;
-            var module = moduleContext.Module;
+            var context = this.moduleContext.Context;
+            var module = this.moduleContext.Module;
 
             var callbackFunctionHandle = NativeBindings.TL_Tool_RegisterFunctionToModule(module.Handle,
                 callbackDeclaration,
@@ -123,6 +132,8 @@ public class EventManager(ModuleContext moduleContext)
             context.SetArgument(0, (uint)eventType);
             context.SetArgument(1, callbackFunctionHandle);
             context.Execute();
+
+            context.Unprepare();
 
             globalFuncIndex++;
         }

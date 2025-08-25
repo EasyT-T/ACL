@@ -2,7 +2,7 @@
 
 using ACL.Private;
 
-public class ScriptModule
+public class ScriptModule : IDisposable
 {
     internal IntPtr Handle { get; }
 
@@ -26,5 +26,12 @@ public class ScriptModule
         var handle = NativeBindings.TL_Engine_GetModule(moduleName, (int)GetModuleFlags.AsGmAlwaysCreate);
 
         return new ScriptModule(handle);
+    }
+
+    public void Dispose()
+    {
+        NativeBindings.TL_Module_Discard(this.Handle);
+
+        GC.SuppressFinalize(this);
     }
 }

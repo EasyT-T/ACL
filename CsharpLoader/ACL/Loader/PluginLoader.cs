@@ -26,8 +26,6 @@ public class PluginLoader
     private PluginLoader()
     {
         var moduleContext = ModuleContext.Create(ScriptModule.Create("acl"), ScriptEngine.CreateContext());
-        moduleContext.Module.SetUserData(moduleContext, 0);
-        moduleContext.Context.SetUserData(moduleContext, 0);
         var eventManager = new EventManager(moduleContext);
 
         Player.Register(eventManager);
@@ -78,9 +76,6 @@ public class PluginLoader
             var module = ScriptModule.Create(plugin.Name);
             var context = ScriptEngine.CreateContext();
             var moduleContext = ModuleContext.Create(module, context);
-
-            module.SetUserData(moduleContext, 0);
-            context.SetUserData(moduleContext, 0);
 
             plugin.ModuleContext = moduleContext;
             plugin.EventManager = new EventManager(moduleContext);

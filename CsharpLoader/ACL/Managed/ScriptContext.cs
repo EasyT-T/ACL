@@ -17,6 +17,11 @@ public class ScriptContext : IDisposable
         return (ScriptErrorType)NativeBindings.TL_Context_Prepare(this.Handle, function.Handle);
     }
 
+    public ScriptErrorType Unprepare()
+    {
+        return (ScriptErrorType)NativeBindings.TL_Context_Unprepare(this.Handle);
+    }
+
     public ScriptErrorType Execute()
     {
         return (ScriptErrorType)NativeBindings.TL_Context_Execute(this.Handle);
