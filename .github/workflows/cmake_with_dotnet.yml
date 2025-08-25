@@ -1,0 +1,64 @@
+name: CMake with .NET
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build-cpp:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v5
+
+    - name: Set up MSVC environment
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x86
+
+    - name: Configure CMake
+      run: cmake -S ${{github.workspace}}/CppBridge -B ${{github.workspace}}/CppBridge/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -G Ninja
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/CppBridge/build --config ${{env.BUILD_TYPE}}
+
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: ACL
+        path: ${{github.workspace}}/CppBridge/build/ACL.dll
+
+  build-dotnet:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v5
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore ${{github.workspace}}/CsharpLoader/ACL.sln
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.1
+
+    - name: Build
+      run: msbuild
+        ${{github.workspace}}/CsharpLoader/ACL.sln
+        /p:Configuration=${{env.BUILD_TYPE}}
+        /p:Platform="x86"
+
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: ACL.NET
+        path: ${{github.workspace}}/CsharpLoader/ACL/bin/x86/${{env.BUILD_TYPE}}/net9.0/ACL.NET.dll
