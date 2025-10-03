@@ -1,11 +1,12 @@
 ﻿namespace ACL.Managed.ScriptObject;
 
+using ACL.Private;
 using ACL.SourceGenerators;
 
 [ScriptClass("Room")]
 public partial class ManagedRoom : ScriptObjectBase
 {
-    internal ManagedRoom(IntPtr handle) : base(handle)
+    internal unsafe ManagedRoom(AngelObject* handle) : base((IntPtr)handle)
     {
     }
 

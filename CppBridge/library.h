@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 
 #include "as_module.h"
 #include "as_scriptengine.h"
@@ -22,19 +23,19 @@ struct ModuleContext {
 };
 
 extern "C" {
-_declspec(dllexport) bool _stdcall TL_Load_Plugins();
+_declspec(dllexport) bool __stdcall TL_Load_Plugins();
 
-_declspec(dllexport) bool _stdcall TL_Tool_Call_Library(const char *libraryName, const char *procName);
+_declspec(dllexport) bool __stdcall TL_Tool_Call_Library(const char *libraryName, const char *procName);
 
-_declspec(dllexport) BBStr * _stdcall TL_Tool_Get_String(const char *str);
+_declspec(dllexport) BBStr * __stdcall TL_Tool_Get_String(const char *str);
 
-_declspec(dllexport) const char * _stdcall TL_Tool_String_Content(const BBStr * string);
+_declspec(dllexport) const char * __stdcall TL_Tool_String_Content(const BBStr * string);
 
-_declspec(dllexport) void _stdcall TL_Tool_Return_String(const BBStr *string);
+_declspec(dllexport) void __stdcall TL_Tool_Return_String(const BBStr *string);
 
-_declspec(dllexport) asSFuncPtr * _stdcall TL_Tool_Get_FuncPtr(void *func);
+_declspec(dllexport) asSFuncPtr * __stdcall TL_Tool_Get_FuncPtr(void *func);
 
-_declspec(dllexport) void _stdcall TL_Tool_Return_FuncPtr(const asSFuncPtr *funcPtr);
+_declspec(dllexport) void __stdcall TL_Tool_Return_FuncPtr(const asSFuncPtr *funcPtr);
 
 _declspec(dllexport) ModuleContext * __stdcall TL_Tool_Get_ModuleContext(asIScriptModule *module, asIScriptContext *context);
 
@@ -44,7 +45,11 @@ _declspec(dllexport) asCScriptFunction * __stdcall TL_Tool_RegisterFunctionToMod
                                                                const asSFuncPtr *funcPointer, asDWORD callConv,
                                                                void *auxiliary);
 
-_declspec(dllexport) asIScriptEngine * _stdcall TL_Engine_GetEngine();
+_declspec(dllexport) std::vector<asIScriptFunction *> * __stdcall TL_Tool_GetEventRegistry(int eventId);
+
+_declspec(dllexport) void __stdcall TL_Tool_Vector_EraseFromValue(std::vector<int> *vector, int value);
+
+_declspec(dllexport) asIScriptEngine * __stdcall TL_Engine_GetEngine();
 
 _declspec(dllexport) int __stdcall TL_Engine_AddRef();
 

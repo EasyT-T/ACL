@@ -1,14 +1,15 @@
 ﻿namespace ACL.Private;
 
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 4)]
-internal struct AngelObject
+internal ref struct AngelObject
 {
     public IntPtr FieldsPointer;
 
-    public PointerReference GetPointer()
+    public unsafe IntPtr GetPointer()
     {
-        return new PointerReference(this);
+        return (IntPtr)Unsafe.AsPointer(ref this);
     }
 }

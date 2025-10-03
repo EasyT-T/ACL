@@ -11,7 +11,7 @@ internal class AngelCallback : IDisposable
 
     internal IntPtr Handle { get; }
 
-    public static AngelCallback Create(Delegate callback)
+    public static AngelCallback Create<TDelegate>(TDelegate callback) where TDelegate : Delegate
     {
         var funcPtr = NativeBindings.TL_Tool_Get_FuncPtr(Marshal.GetFunctionPointerForDelegate(callback));
 

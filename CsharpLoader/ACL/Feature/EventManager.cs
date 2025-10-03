@@ -2,9 +2,8 @@
 
 using System.Runtime.InteropServices;
 using ACL.Managed;
-using ACL.Managed.ScriptObject;
 using ACL.Private;
-using ManagedPlayer = ACL.Managed.ScriptObject.ManagedPlayer;
+using ACL.Private.EventCallback;
 
 public class EventManager
 {
@@ -17,101 +16,64 @@ public class EventManager
         this.moduleContext.Context.SetUserData(this.moduleContext, 0);
     }
 
-    private static int globalFuncIndex;
-
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     public delegate void OnServerUpdate();
 
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     public delegate void OnPlayerUpdate(Player player);
 
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     public delegate void OnPlayerConnect(Player player);
 
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     public delegate bool OnPlayerChat(Player player, string message);
 
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     public delegate void OnPlayerDisconnect(Player player);
 
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    private delegate void EventCallback1();
+    public delegate void OnPlayerAttachesUpdate(Player player);
 
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    private delegate void EventCallback2(Player player);
+    public delegate bool OnPlayerTakeItem(Player player, Items item);
 
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    private delegate bool EventCallback4(Player player, string str);
+    public delegate bool OnPlayerDropItem(Player player, Items item);
 
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    private delegate void EventCallbackVoidObject(AngelObject obj);
+    public delegate void OnPlayerDialogAction(Player player, int index, bool response, string input, int selectedItem);
 
-    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
-    private delegate bool EventCallbackBoolObjectObject(AngelObject obj, AngelObject obj2);
+    public delegate bool OnPlayerShootPlayer(Player attacker, Player target, float x, float y, float z, float damage,
+        bool headshot);
 
     public event OnServerUpdate ServerUpdate
     {
-        add => this.RegisterEvent(new EventCallback1(value), EventType.ServerUpdateC, ServerUpdateCallbackDeclaration,
-            EventCallback1RegisterCallbackFunction);
-        remove => throw new NotSupportedException("Remove event is not supported");
-    }
-
-    public event OnPlayerUpdate PlayerUpdate
-    {
-        add => this.RegisterEvent(WrapEventCallback2(new EventCallback2(value)), EventType.PlayerUpdateC,
-            PlayerUpdateCallbackDeclaration, EventCallback2RegisterCallbackFunction);
-        remove => throw new NotSupportedException("Remove event is not supported");
+        add => this.RegisterEventCallback(value.Invoke, EventType.ServerUpdateC);
+        remove => this.UnregisterEventCallback(value.Invoke, EventType.ServerUpdateC);
     }
 
     public event OnPlayerConnect PlayerConnect
     {
-        add => this.RegisterEvent(WrapEventCallback2(new EventCallback2(value)), EventType.PlayerConnectC,
-            PlayerConnectCallbackDeclaration, EventCallback2RegisterCallbackFunction);
-        remove => throw new NotSupportedException("Remove event is not supported");
+        add => this.RegisterEventCallback(value.Invoke, EventType.PlayerConnectC);
+        remove => this.RegisterEventCallback(value.Invoke, EventType.PlayerConnectC);
+    }
+
+    public event OnPlayerUpdate PlayerUpdate
+    {
+        add => this.RegisterEventCallback(value.Invoke, EventType.PlayerUpdateC);
+        remove => this.UnregisterEventCallback(value.Invoke, EventType.PlayerUpdateC);
     }
 
     public event OnPlayerChat PlayerChat
     {
-        add => this.RegisterEvent(WrapEventCallback4(new EventCallback4(value)), EventType.PlayerChatC,
-            PlayerChatCallbackDeclaration, EventCallback4RegisterCallbackFunction);
-        remove => throw new NotSupportedException("Remove event is not supported");
+        add => this.RegisterEventCallback(value.Invoke, EventType.PlayerChatC);
+        remove => this.UnregisterEventCallback(value.Invoke, EventType.PlayerChatC);
     }
 
     public event OnPlayerDisconnect PlayerDisconnect
     {
-        add => this.RegisterEvent(WrapEventCallback2(new EventCallback2(value)), EventType.PlayerDisconnectC,
-            PlayerDisconnectCallbackDeclaration, EventCallback2RegisterCallbackFunction);
-        remove => throw new NotSupportedException("Remove event is not supported");
+        add => this.RegisterEventCallback(value.Invoke, EventType.PlayerDisconnectC);
+        remove => this.UnregisterEventCallback(value.Invoke, EventType.PlayerDisconnectC);
     }
 
-    private static string ServerUpdateCallbackDeclaration => $"void ACL{nameof(OnServerUpdate)}{globalFuncIndex}()";
+    private readonly Dictionary<ScriptFunction, GCHandle> eventCallbacks = new Dictionary<ScriptFunction, GCHandle>();
 
-    private static string PlayerUpdateCallbackDeclaration =>
-        $"void ACL{nameof(OnPlayerUpdate)}{globalFuncIndex}(Player)";
-
-    private static string PlayerConnectCallbackDeclaration =>
-        $"void ACL{nameof(OnPlayerConnect)}{globalFuncIndex}(Player)";
-
-    private static string PlayerChatCallbackDeclaration =>
-        $"bool ACL{nameof(OnPlayerChat)}{globalFuncIndex}(Player, string)";
-
-    private static string PlayerDisconnectCallbackDeclaration =>
-        $"void ACL{nameof(OnPlayerDisconnect)}{globalFuncIndex}(Player)";
-
-    private static readonly ScriptFunction EventCallback1RegisterCallbackFunction =
-        ScriptEngine.GetGlobalFunction("bool RegisterCallback(int, _EVENT_CALLBACK1@)");
-
-    private static readonly ScriptFunction EventCallback2RegisterCallbackFunction =
-        ScriptEngine.GetGlobalFunction("bool RegisterCallback(int, _EVENT_CALLBACK2@)");
-
-    private static readonly ScriptFunction EventCallback4RegisterCallbackFunction =
-        ScriptEngine.GetGlobalFunction("bool RegisterCallback(int, _EVENT_CALLBACK4@)");
-
-    private void RegisterEvent(Delegate callback, EventType eventType, string callbackDeclaration,
-        ScriptFunction registerCallbackFunction)
+    // So hacky...
+    internal ScriptFunction RegisterEvent<TCallback>(TCallback callback, EventType eventType,
+        string callbackDeclaration,
+        ScriptFunction registerCallbackFunction) where TCallback : Delegate
     {
-        var handle = GCHandle.Alloc(callback);
-
         try
         {
             var scriptCallback = AngelCallback.Create(callback);
@@ -126,8 +88,6 @@ public class EventManager
 
             var function = new ScriptFunction(callbackFunctionHandle);
 
-            GlobalFunctions.Print(function.GetDeclaration());
-
             context.Prepare(registerCallbackFunction);
             context.SetArgument(0, (uint)eventType);
             context.SetArgument(1, callbackFunctionHandle);
@@ -135,54 +95,37 @@ public class EventManager
 
             context.Unprepare();
 
-            globalFuncIndex++;
+            this.eventCallbacks.Add(function, GCHandle.Alloc(callback));
+
+            return function;
         }
         catch (Exception e)
         {
-            handle.Free();
-
             Console.WriteLine("Unable to register event: " + e);
+
+            throw;
         }
     }
 
-    private static EventCallbackVoidObject WrapEventCallback2(EventCallback2 callback)
+    internal void UnregisterEvent(EventType eventType, ScriptFunction eventFunction)
     {
-        return WrappedCallback;
-
-        void WrappedCallback(AngelObject obj)
+        if (!this.eventCallbacks.Remove(eventFunction, out var handle))
         {
-            using var ptr = obj.GetPointer();
-            var managed = new ManagedPlayer(ptr.Handle);
-            var id = managed.GetIndex();
-
-            if (!Player.TryGet(id, out var player))
-            {
-                player = new Player(managed);
-            }
-
-            callback.Invoke(player);
+            return;
         }
-    }
 
-    private static EventCallbackBoolObjectObject WrapEventCallback4(EventCallback4 callback)
-    {
-        return WrappedCallback;
+        handle.Free();
 
-        bool WrappedCallback(AngelObject obj, AngelObject obj2)
+        try
         {
-            using var ptr = obj.GetPointer();
-            var managed = new ManagedPlayer(ptr.Handle);
-            var id = managed.GetIndex();
+            var registry = NativeBindings.TL_Tool_GetEventRegistry((int)eventType);
+            NativeBindings.TL_Tool_Vector_EraseFromValue(registry, eventFunction.Handle.ToInt32());
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
 
-            if (!Player.TryGet(id, out var player))
-            {
-                player = new Player(managed);
-            }
-
-            using var ptr2 = obj2.GetPointer();
-            var str = new ManagedString(ptr2.Handle).ToString();
-
-            return callback.Invoke(player, str);
+            throw;
         }
     }
 }

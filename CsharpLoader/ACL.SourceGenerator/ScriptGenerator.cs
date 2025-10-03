@@ -282,7 +282,7 @@ public class ScriptGenerator : IIncrementalGenerator
                      && InheritsFromScriptObjectBase(nts))
             {
                 sb.AppendLine(
-                    $"        context.SetArgument({i}, handle => new {nts.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}(handle), out {parameter.Name});");
+                    $"        unsafe {{ context.SetArgument({i}, handle => new {nts.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}((AngelObject*)handle), out {parameter.Name}); }}");
             }
             else
             {
@@ -306,8 +306,8 @@ public class ScriptGenerator : IIncrementalGenerator
     private static string GenerateObjectReturnCode(IMethodSymbol method)
     {
         return GetReturnReference(method)
-            ? $"        return new {method.ReturnType.ToDisplayString()}(context.GetReturnObject());"
-            : $"        return new {method.ReturnType.ToDisplayString()}(context.GetReturnPointer());";
+            ? $"        unsafe {{ return new {method.ReturnType.ToDisplayString()}((AngelObject*)context.GetReturnObject()); }}"
+            : $"        unsafe {{ return new {method.ReturnType.ToDisplayString()}((AngelObject*)context.GetReturnPointer()); }}";
     }
 
     private static bool HasAttribute(ISymbol symbol, string attributeName)

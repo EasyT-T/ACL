@@ -1,13 +1,17 @@
 ﻿namespace ACL.Managed.ScriptObject;
 
 using ACL.Managed;
+using ACL.Private;
 using ACL.SourceGenerators;
 
 [ScriptClass("Player")]
 public partial class ManagedPlayer : ScriptObjectBase
 {
-    internal ManagedPlayer(IntPtr handle) : base(handle)
+    private unsafe UnmanagedPlayer* unmanaged;
+
+    internal unsafe ManagedPlayer(AngelObject* handle) : base((IntPtr)handle)
     {
+        this.unmanaged = (UnmanagedPlayer*)handle->FieldsPointer;
     }
 
     #nullable disable

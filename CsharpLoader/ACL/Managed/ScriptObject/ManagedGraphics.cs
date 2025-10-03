@@ -1,14 +1,15 @@
 ﻿namespace ACL.Managed.ScriptObject;
 
+using ACL.Private;
 using ACL.SourceGenerators;
 
 [ScriptClass("Graphics")]
 public partial class ManagedGraphics : ScriptObjectBase
 {
-    public static ManagedGraphics Instance { get; } =
-        new ManagedGraphics(ScriptEngine.GetGlobalProperty("Graphics graphics").Handle);
+    public static unsafe ManagedGraphics Instance { get; } =
+        new ManagedGraphics((AngelObject*)ScriptEngine.GetGlobalProperty("Graphics graphics").Handle);
 
-    internal ManagedGraphics(IntPtr handle) : base(handle)
+    internal unsafe ManagedGraphics(AngelObject* handle) : base((IntPtr)handle)
     {
     }
 

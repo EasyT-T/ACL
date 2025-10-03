@@ -1,23 +1,22 @@
 #include "library.h"
-#include <ostream>
-#include <Windows.h>
+#include <windows.h>
 
 #include <coreclr_delegates.h>
 #include <hostfxr.h>
-#include <iostream>
 #include <nethost.h>
 
 static bool initialized = false;
 
 namespace {
-    inline asIScriptEngine *engine;
-    inline HMODULE mainModule;
+    asIScriptEngine *engine;
+    asIScriptEngine **engineAddress;
+    HMODULE mainModule;
 
     using CreateLoader = void(*)();
 
-    inline hostfxr_initialize_for_runtime_config_fn init_fptr;
-    inline hostfxr_get_runtime_delegate_fn get_delegate_fptr;
-    inline hostfxr_close_fn close_fptr;
+    hostfxr_initialize_for_runtime_config_fn init_fptr;
+    hostfxr_get_runtime_delegate_fn get_delegate_fptr;
+    hostfxr_close_fn close_fptr;
 
     bool load_hostfxr() {
         // Pre-allocate a large buffer for the path to hostfxr
@@ -78,7 +77,8 @@ bool __stdcall DllMain(HINSTANCE, DWORD, LPVOID) {
         return false;
     }
 
-    engine = **reinterpret_cast<asIScriptEngine ***>(reinterpret_cast<char *>(mainModule) + 0x167410);
+    engineAddress = *reinterpret_cast<asIScriptEngine ***>(reinterpret_cast<char *>(mainModule) + 0x167410);
+    engine = *engineAddress;
 
     _putenv_s("DOTNET_EnableDiagnostics", "1");
 
@@ -164,7 +164,7 @@ asCScriptFunction * __stdcall TL_Tool_RegisterFunctionToModule(asCModule *module
 
     const auto func = reinterpret_cast<asCScriptFunction *>(c_engine->GetGlobalFunctionByDecl(declaration));
 
-    func->funcType = asFUNC_SCRIPT;
+    func->funcType = asFUNC_SYSTEM;
     func->nameSpace = module->m_defaultNamespace;
     func->module = module;
     module->m_globalFunctions.Put(func);
@@ -1415,4 +1415,18 @@ const char * __stdcall TL_Tool_String_Content(const BBStr *string) {
     memcpy_s(str, length, string->c_str(), length);
 
     return str;
+}
+
+std::vector<asIScriptFunction *> * __stdcall TL_Tool_GetEventRegistry(const int eventId) {
+    return reinterpret_cast<std::vector<asIScriptFunction*> *>(engineAddress + 3 * eventId + 6147);
+}
+
+void __stdcall TL_Tool_Vector_EraseFromValue(std::vector<int> *vector, const int value) {
+    for (int i = static_cast<int>(vector->size()) - 1; i >= 0; --i) {
+        if (vector->at(i) != value) {
+            continue;
+        }
+
+        vector->erase(vector->begin() + i);
+    }
 }

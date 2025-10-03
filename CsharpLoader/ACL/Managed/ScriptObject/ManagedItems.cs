@@ -1,11 +1,12 @@
 ﻿namespace ACL.Managed.ScriptObject;
 
+using ACL.Private;
 using ACL.SourceGenerators;
 
 [ScriptClass("Items")]
 public partial class ManagedItems : ScriptObjectBase
 {
-    internal ManagedItems(IntPtr handle) : base(handle)
+    internal unsafe ManagedItems(AngelObject* handle) : base((IntPtr)handle)
     {
     }
 

@@ -2,71 +2,64 @@
 
 using System.Runtime.InteropServices;
 
-[StructLayout(LayoutKind.Explicit)]
+[StructLayout(LayoutKind.Sequential, Pack = 4)]
 public struct UnmanagedServer
 {
-    [FieldOffset(0)] public IntPtr CFGValue;
+    public IntPtr CFGValue;
 
-    [FieldOffset(4)] public int Port;
+    public int Port;
 
-    [FieldOffset(8)] public IntPtr HostName;
+    public IntPtr HostName;
 
-    [FieldOffset(12)] public int CorpseAliveTime;
+    public int CorpseAliveTime;
 
-    [FieldOffset(16)] public int Timeout;
+    public int Timeout;
 
-    [FieldOffset(20)] [MarshalAs(UnmanagedType.Bool)]
-    public bool Chat;
+    public int Chat;
 
-    [FieldOffset(24)] [MarshalAs(UnmanagedType.Bool)]
-    public bool Console;
+    public int Console;
 
-    [FieldOffset(28)] public int VoiceBitrate;
+    public int VoiceBitrate;
 
-    [FieldOffset(32)] public int MaxPlayers;
+    public int MaxPlayers;
 
-    [FieldOffset(36)] public IntPtr MapSeed;
+    public IntPtr MapSeed;
 
-    [FieldOffset(40)] public IntPtr AdminPassword;
+    public IntPtr AdminPassword;
 
-    [FieldOffset(44)] public int Difficulty;
+    public int Difficulty;
 
-    [FieldOffset(48)] public int GameMode;
+    public IntPtr GameMode;
 
-    [FieldOffset(52)] public int EmptyBehaviour;
+    public int EmptyBehaviour;
 
-    [FieldOffset(56)] public IntPtr LogFile;
+    public IntPtr LogFile;
 
-    [FieldOffset(60)] [MarshalAs(UnmanagedType.Bool)]
-    public bool ScriptAutoLoad;
+    public int ScriptAutoLoad;
 
-    [FieldOffset(64)] [MarshalAs(UnmanagedType.Bool)]
-    public bool DisableNPCs;
+    public int DisableNPCs;
 
-    [FieldOffset(68)] public float ProxPlayers;
+    public float ProxPlayers;
 
-    [FieldOffset(72)] public float MapBounds;
+    public float MapBounds;
 
-    [FieldOffset(76)] public int RespawnTime;
+    public int RespawnTime;
 
-    [FieldOffset(80)] public IntPtr ContentUrl;
+    public IntPtr ContentUrl;
 
-    [FieldOffset(84)] public IntPtr Password;
+    public IntPtr Password;
 
-    [FieldOffset(88)] [MarshalAs(UnmanagedType.Bool)]
-    public bool ImprovedGates;
+    public int ImprovedGates;
 
-    [FieldOffset(92)] public int MapSize;
+    public int MapSize;
 
-    [FieldOffset(96)] public int Advertise;
+    public int Advertise;
 
-    [FieldOffset(100)] [MarshalAs(UnmanagedType.Bool)]
-    public bool AllowJump;
+    public int AllowJump;
 
-    [FieldOffset(104)] public IntPtr Description;
+    public IntPtr Description;
 
-    [FieldOffset(108)] [MarshalAs(UnmanagedType.Bool)]
-    public bool FastSlots;
+    public int FastSlots;
 
-    [FieldOffset(112)] public float Gravity;
+    public float Gravity;
 }

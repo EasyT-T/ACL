@@ -53,6 +53,11 @@ public class PluginLoader
 
         foreach (var file in directory.GetFiles("*.dll"))
         {
+            if (file.Name == "ACL.NET.dll")
+            {
+                continue;
+            }
+
             var assembly = this.loadContext.LoadFromAssemblyPath(file.FullName);
 
             this.LoadPluginInternal(assembly);

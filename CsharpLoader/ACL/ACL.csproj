@@ -7,9 +7,9 @@
         <Nullable>enable</Nullable>
         <Configurations>Release;Debug</Configurations>
         <Platforms>x86</Platforms>
-        <PackageId>ACL</PackageId>
+        <PackageId>cbreach.acl</PackageId>
         <Version>0.1.0</Version>
-        <Title>Anomalous Csharp Loader</Title>
+        <Title>CBreach.ACL</Title>
         <Authors>EasyT-T</Authors>
         <AssemblyName>ACL.NET</AssemblyName>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>

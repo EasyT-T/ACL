@@ -39,6 +39,12 @@ internal static partial class NativeBindings
         uint callConv,
         IntPtr auxiliary);
 
+    [LibraryImport(DllName, EntryPoint = "TL_Tool_GetEventRegistry")]
+    internal static partial IntPtr TL_Tool_GetEventRegistry(int eventId);
+
+    [LibraryImport(DllName, EntryPoint = "TL_Tool_Vector_EraseFromValue")]
+    internal static partial void TL_Tool_Vector_EraseFromValue(IntPtr vector, int value);
+
     #endregion
 
     #region Engine Functions

@@ -1,6 +1,5 @@
 ﻿namespace ACL.Managed.ScriptObject;
 
-using System.Runtime.InteropServices;
 using ACL.Managed;
 using ACL.Private;
 using ACL.SourceGenerators;
@@ -8,71 +7,222 @@ using ACL.SourceGenerators;
 [ScriptClass("Server")]
 public partial class ManagedServer : ScriptObjectBase
 {
-    public static ManagedServer Instance { get; } =
-        new ManagedServer(ScriptEngine.GetGlobalProperty("Server server").Handle);
+    public static unsafe ManagedServer Instance { get; } =
+        new ManagedServer((AngelObject*)ScriptEngine.GetGlobalProperty("Server server").Handle);
 
-    internal ManagedServer(IntPtr handle) : base(handle)
+    internal unsafe ManagedServer(AngelObject* handle) : base((IntPtr)handle)
     {
+        var handle2 = (AngelObject**)handle;
+        this.unmanaged = (UnmanagedServer*)(*handle2)->FieldsPointer;
     }
 
-    public IntPtr CfgValue => this.Unmanaged.CFGValue;
+    public unsafe ManagedCfgParser CfgValue
+    {
+        get => new ManagedCfgParser((AngelObject*)this.unmanaged->CFGValue);
+        set => this.unmanaged->CFGValue = value.Handle;
+    }
 
-    public int Port => this.Unmanaged.Port;
-    public string HostName => new ManagedString(this.Unmanaged.HostName).ToString();
+    public unsafe int Port
+    {
+        get => this.unmanaged->Port;
+        set => this.unmanaged->Port = value;
+    }
 
-    public int CorpseAliveTime => this.Unmanaged.CorpseAliveTime;
+    public unsafe string HostName
+    {
+        get => new ManagedString(this.unmanaged->HostName);
+        set
+        {
+            new ManagedString(this.unmanaged->HostName, true).Dispose();
+            this.unmanaged->HostName = ManagedString.Create(value).Handle;
+        }
+    }
 
-    public int Timeout => this.Unmanaged.Timeout;
+    public unsafe int CorpseAliveTime
+    {
+        get => this.unmanaged->CorpseAliveTime;
+        set => this.unmanaged->CorpseAliveTime = value;
+    }
 
-    public bool EnabledChat => this.Unmanaged.Chat;
+    public unsafe int Timeout
+    {
+        get => this.unmanaged->Timeout;
+        set => this.unmanaged->Timeout = value;
+    }
 
-    public bool EnabledConsole => this.Unmanaged.Console;
+    public unsafe bool EnabledChat
+    {
+        get => this.unmanaged->Chat == 1;
+        set => this.unmanaged->Chat = value ? 1 : 0;
+    }
 
-    public int VoiceBitrate => this.Unmanaged.VoiceBitrate;
+    public unsafe bool EnabledConsole
+    {
+        get => this.unmanaged->Console == 1;
+        set => this.unmanaged->Console = value ? 1 : 0;
+    }
 
-    public int MaxPlayers => this.Unmanaged.MaxPlayers;
+    public unsafe int VoiceBitrate
+    {
+        get => this.unmanaged->VoiceBitrate;
+        set => this.unmanaged->VoiceBitrate = value;
+    }
 
-    public string MapSeed => new ManagedString(this.Unmanaged.MapSeed).ToString();
+    public unsafe int MaxPlayers
+    {
+        get => this.unmanaged->MaxPlayers;
+        set => this.unmanaged->MaxPlayers = value;
+    }
 
-    public string AdminPassword => new ManagedString(this.Unmanaged.AdminPassword).ToString();
+    public unsafe string MapSeed
+    {
+        get => new ManagedString(this.unmanaged->MapSeed);
+        set
+        {
+            new ManagedString(this.unmanaged->MapSeed, true).Dispose();
+            this.unmanaged->MapSeed = ManagedString.Create(value).Handle;
+        }
+    }
 
-    public int Difficulty => this.Unmanaged.Difficulty;
+    public unsafe string AdminPassword
+    {
+        get => new ManagedString(this.unmanaged->AdminPassword);
+        set
+        {
+            new ManagedString(this.unmanaged->AdminPassword, true).Dispose();
+            this.unmanaged->AdminPassword = ManagedString.Create(value).Handle;
+        }
+    }
 
-    public int GameMode => this.Unmanaged.GameMode;
+    public unsafe int Difficulty
+    {
+        get => this.unmanaged->Difficulty;
+        set => this.unmanaged->Difficulty = value;
+    }
 
-    public int EmptyBehaviour => this.Unmanaged.EmptyBehaviour;
+    public unsafe string GameMode
+    {
+        get => new ManagedString(this.unmanaged->GameMode);
+        set
+        {
+            new ManagedString(this.unmanaged->GameMode, true).Dispose();
+            this.unmanaged->GameMode = ManagedString.Create(value).Handle;
+        }
+    }
 
-    public string LogFile => new ManagedString(this.Unmanaged.LogFile).ToString();
+    public unsafe int EmptyBehaviour
+    {
+        get => this.unmanaged->EmptyBehaviour;
+        set => this.unmanaged->EmptyBehaviour = value;
+    }
 
-    public bool ScriptAutoLoad => this.Unmanaged.ScriptAutoLoad;
+    public unsafe string LogFile
+    {
+        get => new ManagedString(this.unmanaged->LogFile);
+        set
+        {
+            new ManagedString(this.unmanaged->LogFile, true).Dispose();
+            this.unmanaged->LogFile = ManagedString.Create(value).Handle;
+        }
+    }
 
-    public bool DisableNpc => this.Unmanaged.DisableNPCs;
+    public unsafe bool ScriptAutoLoad
+    {
+        get => this.unmanaged->ScriptAutoLoad == 1;
+        set => this.unmanaged->ScriptAutoLoad = value ? 1 : 0;
+    }
 
-    public float ProxPlayers => this.Unmanaged.ProxPlayers;
+    public unsafe bool DisableNps
+    {
+        get => this.unmanaged->DisableNPCs == 1;
+        set => this.unmanaged->DisableNPCs = value ? 1 : 0;
+    }
 
-    public float MapBounds => this.Unmanaged.MapBounds;
+    public unsafe float ProxPlayers
+    {
+        get => this.unmanaged->ProxPlayers;
+        set => this.unmanaged->ProxPlayers = value;
+    }
 
-    public int RespawnTime => this.Unmanaged.RespawnTime;
+    public unsafe float MapBounds
+    {
+        get => this.unmanaged->MapBounds;
+        set => this.unmanaged->MapBounds = value;
+    }
 
-    public string ContentUrl => new ManagedString(this.Unmanaged.ContentUrl).ToString();
+    public unsafe int RespawnTime
+    {
+        get => this.unmanaged->RespawnTime;
+        set => this.unmanaged->RespawnTime = value;
+    }
 
-    public string Password => new ManagedString(this.Unmanaged.Password).ToString();
+    public unsafe string ContentUrl
+    {
+        get => new ManagedString(this.unmanaged->ContentUrl);
+        set
+        {
+            new ManagedString(this.unmanaged->ContentUrl, true).Dispose();
+            this.unmanaged->ContentUrl = ManagedString.Create(value).Handle;
+        }
+    }
 
-    public bool ImprovedGates => this.Unmanaged.ImprovedGates;
+    public unsafe string Password
+    {
+        get => new ManagedString(this.unmanaged->Password);
+        set
+        {
+            new ManagedString(this.unmanaged->Password, true).Dispose();
+            this.unmanaged->Password = ManagedString.Create(value).Handle;
+        }
+    }
 
-    public int MapSize => this.Unmanaged.MapSize;
+    public unsafe bool ImprovedGates
+    {
+        get => this.unmanaged->ImprovedGates == 1;
+        set => this.unmanaged->ImprovedGates = value ? 1 : 0;
+    }
 
-    public int Advertise => this.Unmanaged.Advertise;
+    public unsafe int MapSize
+    {
+        get => this.unmanaged->MapSize;
+        set => this.unmanaged->MapSize = value;
+    }
 
-    public bool AllowJump => this.Unmanaged.AllowJump;
+    public unsafe int Advertise
+    {
+        get => this.unmanaged->Advertise;
+        set => this.unmanaged->Advertise = value;
+    }
 
-    public string Description => new ManagedString(this.Unmanaged.Description).ToString();
+    public unsafe bool AllowJump
+    {
+        get => this.unmanaged->AllowJump == 1;
+        set => this.unmanaged->AllowJump = value ? 1 : 0;
+    }
 
-    public bool FastSlots => this.Unmanaged.FastSlots;
+    public unsafe string Description
+    {
+        get => new ManagedString(this.unmanaged->Description);
+        set
+        {
+            new ManagedString(this.unmanaged->Description, true).Dispose();
+            this.unmanaged->Description = ManagedString.Create(value).Handle;
+        }
+    }
 
-    public float Gravity => this.Unmanaged.Gravity;
+    public unsafe bool FastSlots
+    {
+        get => this.unmanaged->FastSlots == 1;
+        set => this.unmanaged->FastSlots = value ? 1 : 0;
+    }
 
-    private UnmanagedServer Unmanaged => Marshal.PtrToStructure<UnmanagedServer>(Marshal.ReadIntPtr(Marshal.ReadIntPtr(this.Handle)));
+    public unsafe float Gravity
+    {
+        get => this.unmanaged->Gravity;
+        set => this.unmanaged->Gravity = value;
+    }
+
+    private readonly unsafe UnmanagedServer* unmanaged;
 
     [ScriptFunction("void Restart()")]
     public partial void Restart();

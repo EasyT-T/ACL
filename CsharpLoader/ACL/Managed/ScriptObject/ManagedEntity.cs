@@ -1,10 +1,11 @@
 ﻿namespace ACL.Managed.ScriptObject;
 
 using ACL.Managed;
+using ACL.Private;
 
 public class ManagedEntity :ScriptObjectBase
 {
-    internal ManagedEntity(IntPtr handle) : base(handle)
+    internal unsafe ManagedEntity(AngelObject* handle) : base((IntPtr)handle)
     {
     }
 }

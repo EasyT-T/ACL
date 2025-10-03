@@ -1,14 +1,15 @@
 ﻿namespace ACL.Managed.ScriptObject;
 
+using ACL.Private;
 using ACL.SourceGenerators;
 
 [ScriptClass("Audio")]
 public partial class ManagedAudio : ScriptObjectBase
 {
-    public static ManagedAudio Instance { get; } =
-        new ManagedAudio(ScriptEngine.GetGlobalProperty("Audio audio").Handle);
+    public static unsafe ManagedAudio Instance { get; } =
+        new ManagedAudio((AngelObject*)ScriptEngine.GetGlobalProperty("Audio audio").Handle);
 
-    internal ManagedAudio(IntPtr handle) : base(handle)
+    internal unsafe ManagedAudio(AngelObject* handle) : base((IntPtr)handle)
     {
     }
 

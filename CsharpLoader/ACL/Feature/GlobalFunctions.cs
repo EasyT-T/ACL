@@ -2,6 +2,7 @@
 
 using ACL.Managed;
 using ACL.Managed.ScriptObject;
+using ACL.Private;
 using ManagedPlayer = ACL.Managed.ScriptObject.ManagedPlayer;
 
 public static class GlobalFunctions
@@ -28,9 +29,14 @@ public static class GlobalFunctions
 
         var result = context.Execute();
 
-        return result == ScriptErrorType.AsSuccess
-            ? (result, new ManagedPlayer(context.GetReturnPointer()))
-            : (result, null);
+        unsafe
+        {
+            var objPtr = (AngelObject*)context.GetReturnObject();
+
+            return result == ScriptErrorType.AsSuccess
+                ? (result, new ManagedPlayer(objPtr))
+                : (result, null);
+        }
     }
 
     public static ScriptErrorType Print(string message)

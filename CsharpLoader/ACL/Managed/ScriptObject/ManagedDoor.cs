@@ -1,11 +1,12 @@
 ﻿namespace ACL.Managed.ScriptObject;
 
+using ACL.Private;
 using ACL.SourceGenerators;
 
 [ScriptClass("Door")]
 public partial class ManagedDoor : ScriptObjectBase
 {
-    internal ManagedDoor(IntPtr handle) : base(handle)
+    internal unsafe ManagedDoor(AngelObject* handle) : base((IntPtr)handle)
     {
     }
 

@@ -1,11 +1,12 @@
 ﻿namespace ACL.Managed.ScriptObject;
 
+using ACL.Private;
 using ACL.SourceGenerators;
 
 [ScriptClass("GUIElement")]
 public partial class ManagedGuiElement : ScriptObjectBase
 {
-    internal ManagedGuiElement(IntPtr handle) : base(handle)
+    internal unsafe ManagedGuiElement(AngelObject* handle) : base((IntPtr)handle)
     {
     }
 

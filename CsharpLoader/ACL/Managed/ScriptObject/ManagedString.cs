@@ -31,4 +31,9 @@ public class ManagedString : ScriptObjectBase, IDisposable
 
         GC.SuppressFinalize(this);
     }
+
+    public static implicit operator string(ManagedString managedString)
+    {
+        return managedString.ToString();
+    }
 }

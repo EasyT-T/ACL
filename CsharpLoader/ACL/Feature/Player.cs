@@ -4,14 +4,14 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Numerics;
 using ACL.Extension;
-using ACL.Private;
+using ACL.Managed;
 using ManagedPlayer = ACL.Managed.ScriptObject.ManagedPlayer;
 
 public class Player
 {
-    public static IEnumerable<Player> List => IdCache.Values;
+    public static IEnumerable<Player> List => PlayerCache.Values;
 
-    private static readonly Dictionary<int, Player> IdCache = new Dictionary<int, Player>();
+    private static readonly Dictionary<ManagedPlayer, Player> PlayerCache = new Dictionary<ManagedPlayer, Player>();
 
     private bool isInvisible;
 
@@ -155,6 +155,22 @@ public class Player
         set => this.Base.SetStaminaMultiplier(value);
     }
 
+    public ModelType ModelType
+    {
+        get
+        {
+            var value = this.Base.GetModel();
+
+            if (!Enum.IsDefined(typeof(ModelType), value))
+            {
+                return ModelType.Unknown;
+            }
+
+            return (ModelType)value;
+        }
+        set => this.Base.SetModel((int)value);
+    }
+
     public float ScaleMultiplier
     {
         get => this.Base.GetModelSize();
@@ -181,28 +197,66 @@ public class Player
 
     public static Player Get(int id)
     {
-        return IdCache[id];
+        var (result, managedPlayer) = GlobalFunctions.GetPlayer(id);
+
+        if (result != ScriptErrorType.AsSuccess || managedPlayer == null)
+        {
+            throw new ArgumentException("Invalid player id", nameof(id));
+        }
+
+        if (PlayerCache.TryGetValue(managedPlayer, out var player))
+        {
+            return player;
+        }
+
+        player = new Player(managedPlayer);
+
+        PlayerCache.Add(managedPlayer, player);
+        return player;
     }
 
     public static bool TryGet(int id, [NotNullWhen(true)] out Player? player)
     {
-        return IdCache.TryGetValue(id, out player);
+        var (result, managedPlayer) = GlobalFunctions.GetPlayer(id);
+
+        if (result != ScriptErrorType.AsSuccess || managedPlayer == null)
+        {
+            player = null;
+            return false;
+        }
+
+        if (PlayerCache.TryGetValue(managedPlayer, out player))
+        {
+            return true;
+        }
+
+        player = new Player(managedPlayer);
+
+        PlayerCache.Add(managedPlayer, player);
+        return false;
+    }
+
+    internal static Player Get(ManagedPlayer managedPlayer)
+    {
+        if (PlayerCache.TryGetValue(managedPlayer, out var player))
+        {
+            return player;
+        }
+
+        player = new Player(managedPlayer);
+        PlayerCache.Add(managedPlayer, player);
+
+        return player;
     }
 
     internal static void Register(EventManager eventManager)
     {
-        eventManager.PlayerConnect += OnPlayerConnect;
-        eventManager.PlayerDisconnect += OnPlayerDisconnect;
-    }
-
-    private static void OnPlayerConnect(Player player)
-    {
-        IdCache.Add(player.Id, player);
+        // eventManager.PlayerDisconnect += OnPlayerDisconnect;
     }
 
     private static void OnPlayerDisconnect(Player player)
     {
-        IdCache.Remove(player.Id);
+        PlayerCache.Remove(player.Base);
     }
 
     public void SetPlayerTag(int index, PlayerTag tag)
