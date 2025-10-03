@@ -16,9 +16,9 @@ public class UserData : IDisposable, IEquatable<UserData>
         return Marshal.PtrToStructure<T>(this.Handle);
     }
 
-    public static UserData Create(object data)
+    public static unsafe UserData Create(object data)
     {
-        var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(data));
+        var ptr = (IntPtr)NativeMemory.Alloc((UIntPtr)Marshal.SizeOf(data));
         Marshal.StructureToPtr(data, ptr, false);
 
         return new UserData(ptr);
@@ -39,9 +39,15 @@ public class UserData : IDisposable, IEquatable<UserData>
         return this.Handle.GetHashCode();
     }
 
-    public void Dispose()
+    protected virtual void Dispose(bool disposing)
     {
-        Marshal.FreeHGlobal(this.Handle);
+    }
+
+    public unsafe void Dispose()
+    {
+        this.Dispose(true);
+
+        NativeMemory.Free((void*)this.Handle);
 
         GC.SuppressFinalize(this);
     }

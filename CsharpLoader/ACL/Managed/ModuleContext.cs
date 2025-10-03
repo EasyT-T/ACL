@@ -10,11 +10,24 @@ public class ModuleContext : UserData
         this.Context = context;
     }
 
+    public ScriptModule Module { get; }
+    public ScriptContext Context { get; }
+
+    public new static UserData Create(object _)
+    {
+        throw new PlatformNotSupportedException("Use ModuleContext::Create(ScriptModule, ScriptContext) instead");
+    }
+
     public static ModuleContext Create(ScriptModule module, ScriptContext context)
     {
         return new ModuleContext(NativeBindings.TL_Tool_Get_ModuleContext(module.Handle, context.Handle), module, context);
     }
 
-    public ScriptModule Module { get; }
-    public ScriptContext Context { get; }
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            NativeBindings.TL_Tool_Return_ModuleContext(this.Handle);
+        }
+    }
 }
